@@ -1,0 +1,99 @@
+Diagrammes de séquence
+1. Les trois cas d'utilisation clés
+Nous retenons les trois fonctionnalités suivantes :
+Enregistrement d'un nouveau patient.
+Prise de rendez-vous médical.
+Enregistrement d'une consultation.
+2. Diagrammes de séquence
+Cas d'utilisation 1 : Enregistrement d'un nouveau patient
+Acteurs : Secrétaire médicale, système, base de données.
+  EXPLICATION DU DIAGRAMME
+ le processus d'enregistrement d'un patient.
+  Le système effectue d'abord une recherche dans la base de données afin de vérifier si le patient existe déjà. 
+  Le fragment alt permet de distinguer deux scénarios : un patient déjà enregistré et un nouveau patient. Cette vérification permet d'éviter la création de dossiers en double.
+ le processus de prise de rendez-vous et de réalisation d'une consultation médicale.
+ Il décrit les interactions entre le patient, le secrétaire médical, le médecin et le système. 
+  Il commence par la prise de rendez-vous et se termine par l'enregistrement de la consultation. Le fragment alt représente les deux possibilités concernant l'établissement d'une ordonnance médicale.
+    le processus de facturation et de règlement d'une consultation médicale.
+  IL  illustre les interactions nécessaires à la gestion du paiement d'une consultation. 
+   Le fragment alt permet de représenter deux scénarios : le paiement accepté et le paiement refusé. En cas de réussite, le règlement est enregistré et un reçu est généré.
+3 .Dessiner le diagramme d'états d'un objet à statut du projet
+Pour cette question, nous choisissons l'objet Rendez-vous médical.
+Le diagramme d'états permet de représenter les différents états par lesquels passe un rendez-vous médical pendant son cycle de vie, ainsi que les événements qui provoquent les transitions entre ces états.
+  Explication des differents etats:
+ En attente Le rendez-vous est demandé, mais pas encore confirmé.
+ Confirmé Le rendez-vous est validé par le cabinet.
+   En cours Le patient est pris en charge par le médecin.
+  Terminé La consultation est achevée.
+Annulé Le rendez-vous a été annulé.
+Absent Le patient ne s'est pas présenté.
+Interrompu La consultation a été interrompue avant son achèvement. 
+Conclusion : Ce diagramme permet de suivre le cycle de vie d'un rendez-vous médical et de contrôler son évolution dans le système de gestion du cabinet.
+
+  
+  
+  Architecture du projet
+  Schéma d'architecture 
+Pour notre projet, nous retenons une architecture trois tiers.
+Elle comprend trois couches principales :
+Couche présentation : interface utilisée par le médecin, le secrétaire et l'administrateur.
+Couche métier : traitements et services de gestion du cabinet.
+Couche données : base de données qui conserve les informations.
+Interface utilisateur Permet d'accéder à l'application.
+Authentification Vérifie les identifiants des utilisateurs.
+Gestion des patients Enregistre et recherche les patients.
+Gestion des médecins Gère les informations des médecins.
+Gestion des rendez-vous Planifie et modifie les rendez-vous.
+Gestion des consultations Enregistre les consultations médicales.
+Gestion des prescriptions Gère les ordonnances.
+Gestion des factures Gère les paiements des patients.
+Base de données MySQL Stocke les données du cabinet médical.
+Service de notification Envoie les rappels de rendez-vous.
+ Environnement de déploiement :
+Ordinateur serveur pour héberger l'application.
+Serveur de base de données MySQL.
+Ordinateurs clients pour le médecin et le secrétaire.
+Réseau local sécurisé.
+Système de sauvegarde des données.
+5. Comparaison de deux options d'architecture (15 min)
+Nous comparons deux architectures possibles :
+Architecture client-serveur.
+Architecture trois tiers.
+Tableau comparatif avec pondération
+Notation : de 1 à 5.
+ Critères Poids Client-serveur
+Coût de développement  le poids est 2  client serveur est 5
+Sécurité des données le poids est 3 client serveur est 3
+Facilité de maintenance  le poids est 2 client serveur est 3
+Performance le poids est 2 client serveur 4
+Évolutivité le poids est 3 client serveur est 2  
+  
+6.Decision d'Architecture
+  Architecture retenue
+
+Pour gérer le cabinet médical, nous choisissons une architecture client-serveur en trois couches : l’interface utilisée par le médecin et le secrétaire, la couche de traitement et la base de données.
+
+Cette architecture facilite la gestion des patients, des rendez-vous et des consultations. Elle est adaptée à un cabinet médical et plus simple à maintenir que des microservices.
+Les données des patients étant sensibles, chaque utilisateur aura un compte avec des droits adaptés à son rôle. Les données seront protégées et sauvegardées régulièrement.
+ Cycle d’un rendez-vous
+Un rendez-vous peut être planifié, confirmé, terminé, annulé ou marqué non honoré si le patient ne se présente pas.
+ Schéma de l’architecture
+6. Decision d'Architecture
+  Architecture retenue
+Pour gérer le cabinet médical, nous choisissons une architecture client-serveur en trois couches : l’interface utilisée par le médecin et le secrétaire, la couche de traitement et la base de données.
+Cette architecture facilite la gestion des patients, des rendez-vous et des consultations. Elle est adaptée à un cabinet médical et plus simple à maintenir que des microservices.
+Les données des patients étant sensibles, chaque utilisateur aura un compte avec des droits adaptés à son rôle. Les données seront protégées et sauvegardées régulièrement.
+ Cycle d’un rendez-vous
+Un rendez-vous peut être planifié, confirmé, terminé, annulé ou marqué non honoré si le patient ne se présente pas.
+Schéma de l’architecture
+  Le médecin et le secrétaire utilisent l’interface de l’application pour gérer les patients, les rendez-vous et les consultations. Leurs demandes sont traitées par l’application, qui vérifie les informations et les droits d’accès avant de consulter ou de modifier la base de données.
+La base de données conserve les informations du cabinet. Elle doit être protégée et sauvegardée régulièrement afin d’éviter la perte ou l’accès non autorisé aux données des patients.
+Médecin et secrétaire
+          ↓
+Interface de l’application
+          ↓
+Traitement des données
+          ↓
+Base de données sécurisée
+
+   
