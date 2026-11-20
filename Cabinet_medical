@@ -1,0 +1,158 @@
+1. Règles de gestion
+
+- Un patient peut prendre plusieurs rendez-vous ; chaque rendez-vous concerne un seul patient.
+- Un médecin peut recevoir plusieurs patients ; chaque rendez-vous est attribué à un seul médecin.
+- Un médecin possède une spécialité.
+- Un rendez-vous peut donner lieu à zéro ou une consultation.
+- Une consultation peut avoir une ordonnance, composée d’un ou plusieurs médicaments.
+- Un même médicament peut figurer dans plusieurs ordonnances.
+
+## 2. Dictionnaire de données — 20 données
+
+| Donnée | Type | Règle |
+|---|---|---|
+| id_patient | INT | Clé primaire, obligatoire |
+| nom_patient | VARCHAR(60) | Obligatoire |
+| prenom_patient | VARCHAR(60) | Obligatoire |
+| date_naissance | DATE | Facultative |
+| sexe | CHAR(1) | Valeurs : F ou M |
+| telephone_patient | VARCHAR(20) | Facultatif |
+| adresse_patient | VARCHAR(150) | Facultative |
+| id_specialite | INT | Clé primaire |
+| libelle_specialite | VARCHAR(80) | Obligatoire, unique |
+| id_medecin | INT | Clé primaire |
+| nom_medecin | VARCHAR(60) | Obligatoire |
+| prenom_medecin | VARCHAR(60) | Obligatoire |
+| telephone_medecin | VARCHAR(20) | Facultatif |
+| id_rendezvous | INT | Clé primaire |
+| date_heure_rdv | DATETIME | Obligatoire |
+| motif | VARCHAR(200) | Obligatoire |
+| statut_rdv | VARCHAR(20) | Valeurs définies à l’avance |
+| id_consultation | INT | Clé primaire |
+| diagnostic | TEXT | Obligatoire |
+| id_medicament | INT | Clé primaire |
+
+Les autres données nécessaires sont : id_ordonance, date_ordonnance, posologie, duree_jours et quantite.
+
+## 3. MCD : entités et cardinalités
+
+- *PATIENT* (0,N) — prend — *RENDEZ_VOUS* (1,1)
+- *MEDECIN* (0,N) — reçoit — *RENDEZ_VOUS* (1,1)
+- *SPECIALITE* (0,N) — concerne — *MEDECIN* (1,1)
+- *RENDEZ_VOUS* (0,1) — donne lieu à — *CONSULTATION* (1,1)
+- *CONSULTATION* (0,N) — possède — *ORDONNANCE* (1,1)
+- *ORDONNANCE* (1,N) — contient — *MEDICAMENT* (0,N)
+
+L’association entre ORDONNANCE et MEDICAMENT devient la table LIGNE_ORDONNANCE.
+
+## 4. MLD : schéma relationnel
+
+text
+SPECIALITE(id_specialite PK, libelle_specialite)
+MEDECIN(id_medecin PK, nom_medecin, prenom_medecin,
+        telephone_medecin, id_specialite FK)
+PATIENT(id_patient PK, nom_patient, prenom_patient,
+        date_naissance, sexe, telephone_patient, adresse_patient)
+RENDEZ_VOUS(id_rendezvous PK, date_heure_rdv, motif, statut_rdv,
+            id_patient FK, id_medecin FK)
+CONSULTATION(id_consultation PK, diagnostic, date_consultation,
+             id_rendezvous FK UNIQUE)
+ORDONNANCE(id_ordonance PK, date_ordonnance, id_consultation FK)
+MEDICAMENT(id_medicament PK, nom_medicament)
+LIGNE_ORDONNANCE(id_ordonance PK/FK, id_medicament PK/FK,
+                 posologie, duree_jours, quantite)
+
+
+PK signifie *clé primaire* et FK *clé étrangère*.
+
+## 5. Normalisation
+
+Le modèle est en *3e forme normale (3FN)* :
+
+- chaque table possède une clé primaire ;
+- chaque colonne contient une seule valeur ;
+- les informations sur une spécialité, un patient ou un médicament ne sont pas répétées dans les autres tables ;
+- les relations entre tables sont assurées par les clés étrangères.
+
+## 6. Création des tables SQL
+
+sql
+CREATE TABLE Specialite (
+    id_specialite INT PRIMARY KEY AUTO_INCREMENT,
+    libelle_specialite VARCHAR(80) NOT NULL UNIQUE
+);
+
+CREATE TABLE Medecin (
+    id_medecin INT PRIMARY KEY AUTO_INCREMENT,
+    nom_medecin VARCHAR(60) NOT NULL,
+    prenom_medecin VARCHAR(60) NOT NULL,
+    telephone_medecin VARCHAR(20),
+    id_specialite INT NOT NULL,
+    FOREIGN KEY (id_specialite) REFERENCES Specialite(id_specialite)
+);
+
+CREATE TABLE Patient (
+    id_patient INT PRIMARY KEY AUTO_INCREMENT,
+    nom_patient VARCHAR(60) NOT NULL,
+    prenom_patient VARCHAR(60) NOT NULL,
+    date_naissance DATE,
+    sexe CHAR(1),
+    telephone_patient VARCHAR(20),
+    adresse_patient VARCHAR(150),
+    CHECK (sexe IN ('F', 'M'))
+);
+
+CREATE TABLE RendezVous (
+    id_rendezvous INT PRIMARY KEY AUTO_INCREMENT,
+    date_heure_rdv DATETIME NOT NULL,
+    motif VARCHAR(200) NOT NULL,
+    statut_rdv VARCHAR(20) NOT NULL DEFAULT 'En attente',
+    id_patient INT NOT NULL,
+    id_medecin INT NOT NULL,
+    FOREIGN KEY (id_patient) REFERENCES Patient(id_patient),
+    FOREIGN KEY (id_medecin) REFERENCES Medecin(id_medecin),
+    CHECK (statut_rdv IN ('En attente', 'Confirmé', 'Terminé', 'Annulé'))
+);
+
+CREATE TABLE Consultation (
+    id_consultation INT PRIMARY KEY AUTO_INCREMENT,
+    diagnostic TEXT NOT NULL,
+    date_consultation DATETIME NOT NULL,
+    id_rendezvous INT NOT NULL UNIQUE,
+    FOREIGN KEY (id_rendezvous) REFERENCES RendezVous(id_rendezvous)
+);
+
+CREATE TABLE Ordonnance (
+    id_ordonance INT PRIMARY KEY AUTO_INCREMENT,
+    date_ordonnance DATE NOT NULL,
+    id_consultation INT NOT NULL,
+    FOREIGN KEY (id_consultation) REFERENCES Consultation(id_consultation)
+);
+
+CREATE TABLE Medicament (
+    id_medicament INT PRIMARY KEY AUTO_INCREMENT,
+    nom_medicament VARCHAR(100) NOT NULL UNIQUE
+);
+
+CREATE TABLE LigneOrdonnance (
+    id_ordonance INT NOT NULL,
+    id_medicament INT NOT NULL,
+    posologie VARCHAR(100) NOT NULL,
+    duree_jours INT NOT NULL,
+    quantite INT NOT NULL,
+    PRIMARY KEY (id_ordonance, id_medicament),
+    FOREIGN KEY (id_ordonance) REFERENCES Ordonnance(id_ordonance),
+    FOREIGN KEY (id_medicament) REFERENCES Medicament(id_medicament),
+    CHECK (duree_jours > 0),
+    CHECK (quantite > 0)
+);
+
+
+7. Tests d’erreurs à effectuer
+La base doit refuser :
+1. un patient avec un sexe autre que F ou M ;
+2. un rendez-vous avec un statut non prévu ;
+3. un rendez-vous lié à un patient inexistant ;
+4. une consultation associée à un rendez-vous inexistant ;
+5. une ligne d’ordonnance avec une durée ou une quantité égale à zéro ;
+6. une spécialité dont le libellé existe déjà.
